@@ -11,7 +11,7 @@ import glob
 class Get_Data:
 
     def __init__(self) -> None:
-        self.driver = webdriver.Chrome() 
+        self.driver = webdriver.Chrome()
         self.WEBSITES = []
 
     def write_file(self, rows, writer):
@@ -19,24 +19,6 @@ class Get_Data:
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, 'td')
             write_format.append([cell.text for cell in cells])
-            out = []
-            for cell in cells:
-                out.append(cell.text)
-            try:
-                if len(out) > 1:
-                    if "-" in out[3] or "+" in out[3] or "?" in out[3]:
-                        cleaned_output = out[3].replace("+", "").replace("?", "").strip()
-                        out[3] = cleaned_output
-                        write_format.append(out)
-                    else:
-                        if int(out[3]) >= 3:
-                            cleaned_output = out[3].strip()
-                            out[3] = int(cleaned_output)
-                            write_format.append(out)
-                else:
-                    write_format.append(out)
-            except ValueError:
-                print(out)    
         writer.writerows(write_format)
 
     def get_websites(self):
@@ -48,7 +30,8 @@ class Get_Data:
             self.WEBSITES.extend([cell.get_attribute('href') for cell in cells])
             break
         print(len(self.WEBSITES), " Websites Found. Scraping Completed.")
-        self.create_csv()
+        # self.create_csv()
+        self.get_individual_websites()
 
     def create_csv(self):
         for WEBSITE in self.WEBSITES:
@@ -67,13 +50,41 @@ class Get_Data:
                         rows = self.driver.find_element(By.ID, "table4").find_elements(By.XPATH, '//tbody/tr')
                         print("Writing ", file_name)
                         self.write_file(rows, writer)
-                file.close()   
+                file.close()
             except Exception:
                 traceback.print_exc()
                 break
         self.driver.close()
         print("CSV's ready")
-        self.combine_csv()
+        # self.combine_csv()
+
+    def get_individual_websites(self):
+        for WEBSITE in self.WEBSITES:
+            file_name = "links/" + WEBSITE.split("/")[-1].replace(".htm", "") + ".csv"
+            try:
+                with open(file_name, "w") as file:
+                    writer = csv.writer(file, delimiter=',')
+                    self.driver.get(WEBSITE)
+                    try:
+                        rows = self.driver.find_element(By.ID, "table2").find_elements(By.TAG_NAME, 'a')
+                        links = []
+                        for row in rows:
+                            links.append(row.get_attribute('href'))
+                        print(links)
+                        writer.writerows(links)
+                    except:
+                        rows = self.driver.find_element(By.ID, "table4").find_elements(By.TAG_NAME, 'a')
+                        links = []
+                        for row in rows:
+                            links.append(row.get_attribute('href'))
+                        print(links)
+                        writer.writerows(links)
+                file.close()
+            except Exception:
+                traceback.print_exc()
+                break
+        self.driver.close()
+        print("CSV's ready")
     
     def combine_csv(self):
         print("Combining CSV's START")
