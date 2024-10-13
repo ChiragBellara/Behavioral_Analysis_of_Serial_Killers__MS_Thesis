@@ -1,3 +1,5 @@
 openpyxl
 chromedriver-binary
 selenium
+thefuzz
+jupyter
