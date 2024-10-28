@@ -3,3 +3,6 @@ chromedriver-binary
 selenium
 thefuzz
 jupyter
+spacy
+scikit-learn
+textblob
